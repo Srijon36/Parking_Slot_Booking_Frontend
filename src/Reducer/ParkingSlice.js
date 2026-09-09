@@ -141,6 +141,5 @@ const parkingSlice = createSlice({
       });
   },
 });
-
 export const { clearSelectedParking, clearParkingError } = parkingSlice.actions;
-export default parkingSlice.reducer;x``
+export default parkingSlice.reducer;
