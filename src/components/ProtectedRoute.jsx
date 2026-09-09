@@ -1,22 +1,31 @@
-import { Navigate, Outlet } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { Navigate } from "react-router-dom";
 
-// Usage in App.jsx:
-// <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
-//   <Route path="/dashboard" element={<Dashboard />} />
-// </Route>
-const ProtectedRoute = ({ allowedRoles }) => {
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+const AUTH_STORAGE_KEY = "parking_token";
 
-  if (!isAuthenticated) {
+const getAuthData = () => {
+  try {
+    const stored = sessionStorage.getItem(AUTH_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    console.error("Error parsing auth data:", error);
+    return null;
+  }
+};
+
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const auth = getAuthData();
+  const token = auth?.token || null;
+  const role = auth?.user?.role || null;
+
+  if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+  if (allowedRoles && !allowedRoles.includes(role)) {
     return <Navigate to="/" replace />;
   }
 
-  return <Outlet />;
+  return children;
 };
 
 export default ProtectedRoute;

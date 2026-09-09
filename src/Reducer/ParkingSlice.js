@@ -143,4 +143,4 @@ const parkingSlice = createSlice({
 });
 
 export const { clearSelectedParking, clearParkingError } = parkingSlice.actions;
-export default parkingSlice.reducer;
+export default parkingSlice.reducer;x``
