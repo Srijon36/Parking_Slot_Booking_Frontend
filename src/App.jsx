@@ -25,8 +25,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 const AppLayout = () => {
   const location = useLocation();
 
-  // Exact paths where Navbar/Footer should be hidden
-  const hideLayoutRoutes = ["/login", "/register", "/forgot-password"];
+  // Routes where Navbar and Footer are both hidden
+  const hideLayoutRoutes = ["/", "/login", "/register", "/forgot-password"];
   const hideLayout = hideLayoutRoutes.includes(location.pathname);
 
   return (
@@ -34,15 +34,29 @@ const AppLayout = () => {
       {!hideLayout && <Navbar />}
 
       <Routes>
-        {/* Public Routes */}
         <Route path="/" element={<Home />} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/search" element={<SearchParking />} />
-        <Route path="/parking/:id" element={<ParkingDetails />} />
 
-        {/* Protected User Routes */}
+        <Route
+          path="/search"
+          element={
+            <ProtectedRoute>
+              <SearchParking />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/parking/:id"
+          element={
+            <ProtectedRoute>
+              <ParkingDetails />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/slots/:parkingId"
           element={
@@ -92,7 +106,6 @@ const AppLayout = () => {
           }
         />
 
-        {/* Shared Protected Routes (any logged-in role) */}
         <Route
           path="/dashboard"
           element={
@@ -110,7 +123,6 @@ const AppLayout = () => {
           }
         />
 
-        {/* 404 Fallback */}
         <Route path="*" element={<NotFound />} />
       </Routes>
 
