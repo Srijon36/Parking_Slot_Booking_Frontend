@@ -910,3 +910,43 @@ input {
   color: var(--color-gray-600);
   font-size: 14px;
 }
+
+/* Back Button*/ 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--color-gray-500, #6b7280);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 16px;
+  transition: color 0.15s ease;
+}
+
+.back-button:hover {
+  color: var(--color-gray-800, #1f2937);
+}

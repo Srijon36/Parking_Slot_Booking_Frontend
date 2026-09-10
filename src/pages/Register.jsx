@@ -3,16 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../store/Api";
 
 const Register = () => {
-  const [role, setRole] = useState("user");
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     phone: "",
     password: "",
     confirmPassword: "",
-    parkingName: "",
-    address: "",
-    gstNumber: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,12 +32,8 @@ const Register = () => {
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
-        role,
-        ...(role === "vendor" && {
-          parkingName: formData.parkingName,
-          address: formData.address,
-          gstNumber: formData.gstNumber,
-        }),
+        confirm_password: formData.confirmPassword,
+        role: "user",
       };
       await api.post("/auth/register", payload);
       navigate("/login");
@@ -56,17 +48,18 @@ const Register = () => {
     <div className="register-page">
       <div className="register-content">
         <div>
-          <span className="hero-eyebrow" style={{ background: "var(--color-teal-100)", color: "var(--color-teal-700)", border: "none" }}>
+          <span
+            className="hero-eyebrow"
+            style={{ background: "var(--color-teal-100)", color: "var(--color-teal-700)", border: "none" }}
+          >
             ⚙ Join ParkEase Network
           </span>
           <h1 className="register-headline">
-            Smart parking solutions for <span className="accent">drivers</span> and{" "}
-            <span className="accent">property owners</span>.
+            Smart parking solutions for <span className="accent">drivers</span> across the city.
           </h1>
           <p className="register-copy">
-            Whether you're looking to secure a hassle-free spot in the congested city center or
-            monetize your empty parking spaces, ParkEase gives you absolute control with
-            real-time analytics and instant reservations.
+            Secure a hassle-free spot in the congested city center. ParkEase gives you
+            real-time availability, instant reservations, and seamless digital passes.
           </p>
 
           <div className="register-info-cards">
@@ -76,27 +69,27 @@ const Register = () => {
               <p>Instant bay discovery, EV charger filters, and automated entry.</p>
             </div>
             <div className="register-info-card">
-              <div className="feature-icon">🏢</div>
-              <h4>For Vendors</h4>
-              <p>Maximize revenue, dynamic pricing control, and live occupancy streams.</p>
+              <div className="feature-icon">⏱️</div>
+              <h4>Fast Booking</h4>
+              <p>Reserve your slot in seconds and skip the endless circling.</p>
             </div>
           </div>
         </div>
 
         <div className="auth-card">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="back-button"
+            aria-label="Go back"
+          >
+            ← Back
+          </button>
+
           <p style={{ fontWeight: 600, fontSize: 15, marginBottom: 2 }}>Create an account</p>
           <p className="auth-subtitle" style={{ textAlign: "left", marginBottom: 20 }}>
-            Choose your role and enter your details to get started.
+            Enter your details to get started.
           </p>
-
-          <div className="role-toggle">
-            <button type="button" className={role === "user" ? "active" : ""} onClick={() => setRole("user")}>
-              👤 I'm a User
-            </button>
-            <button type="button" className={role === "vendor" ? "active" : ""} onClick={() => setRole("vendor")}>
-              🏬 I'm a Vendor
-            </button>
-          </div>
 
           {error && <div className="alert alert-error">{error}</div>}
 
@@ -142,47 +135,6 @@ const Register = () => {
                 style={{ marginTop: 6 }}
               />
             </div>
-
-            {role === "vendor" && (
-              <>
-                <div className="form-group">
-                  <label className="form-label">Parking Name</label>
-                  <input
-                    type="text"
-                    name="parkingName"
-                    className="form-input"
-                    value={formData.parkingName}
-                    onChange={handleChange}
-                    required
-                    style={{ marginTop: 6 }}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Address</label>
-                  <input
-                    type="text"
-                    name="address"
-                    className="form-input"
-                    value={formData.address}
-                    onChange={handleChange}
-                    required
-                    style={{ marginTop: 6 }}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">GST Number</label>
-                  <input
-                    type="text"
-                    name="gstNumber"
-                    className="form-input"
-                    value={formData.gstNumber}
-                    onChange={handleChange}
-                    required
-                    style={{ marginTop: 6 }}
-                  />
-                </div>
-              </>
-            )}
 
             <div className="form-grid-2">
               <div className="form-group">

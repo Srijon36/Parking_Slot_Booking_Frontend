@@ -32,6 +32,15 @@ const Login = () => {
     <div className="auth-page">
       <div className="auth-content">
         <div className="auth-card">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="back-button"
+            aria-label="Go back"
+          >
+            ← Back
+          </button>
+
           <div className="auth-icon">🔒</div>
           <h1 className="auth-title">Welcome Back</h1>
           <p className="auth-subtitle">Enter your details to access your ParkEase account</p>

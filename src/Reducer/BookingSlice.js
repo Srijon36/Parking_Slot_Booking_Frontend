@@ -3,42 +3,27 @@ import api from "../store/Api";
 
 // ── Thunks ──────────────────────────────────────
 
-// User: create a new booking for a parking slot
-export const createBooking = createAsyncThunk(
-  "booking/createBooking",
-  async (bookingData, { rejectWithValue }) => {
-    try {
-      const response = await api.post("/bookings", bookingData);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to create booking."
-      );
-    }
-  }
-);
-
-// User: get all of MY bookings
+// Get all bookings for the logged-in user
 export const fetchMyBookings = createAsyncThunk(
   "booking/fetchMyBookings",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get("/bookings/my-bookings");
+      const response = await api.get("/booking/my-bookings");
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch your bookings."
+        error.response?.data?.message || "Failed to fetch bookings."
       );
     }
   }
 );
 
-// User: get a single booking by ID
+// Get a single booking by ID
 export const fetchBookingById = createAsyncThunk(
   "booking/fetchBookingById",
   async (bookingId, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/bookings/${bookingId}`);
+      const response = await api.get(`/booking/${bookingId}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -48,31 +33,31 @@ export const fetchBookingById = createAsyncThunk(
   }
 );
 
-// User: cancel a booking
-export const cancelBooking = createAsyncThunk(
-  "booking/cancelBooking",
-  async (bookingId, { rejectWithValue }) => {
+// Create a new booking
+export const createBooking = createAsyncThunk(
+  "booking/createBooking",
+  async (bookingData, { rejectWithValue }) => {
     try {
-      const response = await api.patch(`/bookings/${bookingId}/cancel`);
-      return { bookingId, data: response.data };
+      const response = await api.post("/booking/create", bookingData);
+      return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to cancel booking."
+        error.response?.data?.message || "Failed to create booking."
       );
     }
   }
 );
 
-// Vendor: get all bookings made for MY parking listings
-export const fetchVendorBookings = createAsyncThunk(
-  "booking/fetchVendorBookings",
-  async (_, { rejectWithValue }) => {
+// Cancel a booking
+export const cancelBooking = createAsyncThunk(
+  "booking/cancelBooking",
+  async (bookingId, { rejectWithValue }) => {
     try {
-      const response = await api.get("/vendor/bookings");
+      const response = await api.patch(`/booking/${bookingId}/cancel`);
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch vendor bookings."
+        error.response?.data?.message || "Failed to cancel booking."
       );
     }
   }
@@ -83,7 +68,6 @@ const bookingSlice = createSlice({
   name: "booking",
   initialState: {
     bookings: [],
-    vendorBookings: [],
     selectedBooking: null,
     loading: false,
     error: null,
@@ -98,21 +82,6 @@ const bookingSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // createBooking
-      .addCase(createBooking.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(createBooking.fulfilled, (state, action) => {
-        state.loading = false;
-        const newBooking = action.payload.booking || action.payload.data;
-        if (newBooking) state.bookings.unshift(newBooking);
-      })
-      .addCase(createBooking.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
       // fetchMyBookings
       .addCase(fetchMyBookings.pending, (state) => {
         state.loading = true;
@@ -141,6 +110,21 @@ const bookingSlice = createSlice({
         state.error = action.payload;
       })
 
+      // createBooking
+      .addCase(createBooking.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createBooking.fulfilled, (state, action) => {
+        state.loading = false;
+        const newBooking = action.payload.booking || action.payload.data;
+        if (newBooking) state.bookings.unshift(newBooking);
+      })
+      .addCase(createBooking.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       // cancelBooking
       .addCase(cancelBooking.pending, (state) => {
         state.loading = true;
@@ -148,26 +132,13 @@ const bookingSlice = createSlice({
       })
       .addCase(cancelBooking.fulfilled, (state, action) => {
         state.loading = false;
-        const idx = state.bookings.findIndex((b) => b._id === action.payload.bookingId);
-        if (idx !== -1) {
-          state.bookings[idx].status = "cancelled";
+        const updated = action.payload.booking || action.payload.data;
+        if (updated) {
+          const idx = state.bookings.findIndex((b) => b._id === updated._id);
+          if (idx !== -1) state.bookings[idx] = updated;
         }
       })
       .addCase(cancelBooking.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
-      // fetchVendorBookings
-      .addCase(fetchVendorBookings.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchVendorBookings.fulfilled, (state, action) => {
-        state.loading = false;
-        state.vendorBookings = action.payload.bookings || action.payload.data || [];
-      })
-      .addCase(fetchVendorBookings.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
