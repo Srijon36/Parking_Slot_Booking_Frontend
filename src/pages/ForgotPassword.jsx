@@ -9,6 +9,8 @@ const ForgotPassword = () => {
   const [resetToken, setResetToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -66,95 +68,115 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Forgot Password</h1>
-        <p className="text-gray-500 mb-6">
-          {step === 1 && "Enter your email to receive an OTP."}
-          {step === 2 && "Enter the OTP sent to your email."}
-          {step === 3 && "Set your new password."}
-        </p>
+    <div className="auth-page">
+      <div className="auth-content">
+        <div className="auth-card">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="back-button"
+            aria-label="Go back"
+          >
+            ← Back
+          </button>
 
-        {message && (
-          <div className="bg-green-50 text-green-700 text-sm px-4 py-3 rounded-lg mb-4">
-            {message}
-          </div>
-        )}
-        {error && (
-          <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-4">
-            {error}
-          </div>
-        )}
+          <h1 className="auth-title" style={{ textAlign: "left" }}>Forgot Password</h1>
+          <p className="auth-subtitle" style={{ textAlign: "left" }}>
+            {step === 1 && "Enter your email to receive an OTP."}
+            {step === 2 && "Enter the OTP sent to your email."}
+            {step === 3 && "Set your new password."}
+          </p>
 
-        {step === 1 && (
-          <form onSubmit={handleSendOtp} className="space-y-4">
-            <input
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition"
-            >
-              {loading ? "Sending..." : "Send OTP"}
-            </button>
-          </form>
-        )}
+          {message && <div className="alert alert-success">{message}</div>}
+          {error && <div className="alert alert-error">{error}</div>}
 
-        {step === 2 && (
-          <form onSubmit={handleVerifyOtp} className="space-y-4">
-            <input
-              type="text"
-              placeholder="Enter 6-digit OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              required
-              maxLength={6}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none tracking-widest text-center"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition"
-            >
-              {loading ? "Verifying..." : "Verify OTP"}
-            </button>
-          </form>
-        )}
+          {step === 1 && (
+            <form onSubmit={handleSendOtp}>
+              <div className="form-group">
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="form-input"
+                />
+              </div>
+              <button type="submit" disabled={loading} className="btn btn-teal btn-block">
+                {loading ? "Sending..." : "Send OTP"}
+              </button>
+            </form>
+          )}
 
-        {step === 3 && (
-          <form onSubmit={handleResetPassword} className="space-y-4">
-            <input
-              type="password"
-              placeholder="New Password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-            <input
-              type="password"
-              placeholder="Confirm New Password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition"
-            >
-              {loading ? "Resetting..." : "Reset Password"}
-            </button>
-          </form>
-        )}
+          {step === 2 && (
+            <form onSubmit={handleVerifyOtp}>
+              <div className="form-group">
+                <input
+                  type="text"
+                  placeholder="Enter 6-digit OTP"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  required
+                  maxLength={6}
+                  className="form-input"
+                  style={{ textAlign: "center", letterSpacing: "4px" }}
+                />
+              </div>
+              <button type="submit" disabled={loading} className="btn btn-teal btn-block">
+                {loading ? "Verifying..." : "Verify OTP"}
+              </button>
+            </form>
+          )}
+
+          {step === 3 && (
+            <form onSubmit={handleResetPassword}>
+              <div className="form-group">
+                <div className="password-field">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    placeholder="New Password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="form-input"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowNewPassword((prev) => !prev)}
+                    aria-label={showNewPassword ? "Hide password" : "Show password"}
+                  >
+                    {showNewPassword ? "🙈" : "👁️"}
+                  </button>
+                </div>
+              </div>
+              <div className="form-group">
+                <div className="password-field">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm New Password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className="form-input"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPassword ? "🙈" : "👁️"}
+                  </button>
+                </div>
+              </div>
+              <button type="submit" disabled={loading} className="btn btn-teal btn-block">
+                {loading ? "Resetting..." : "Reset Password"}
+              </button>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

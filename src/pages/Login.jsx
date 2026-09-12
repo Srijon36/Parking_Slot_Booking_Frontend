@@ -6,6 +6,7 @@ import api from "../store/Api";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
@@ -70,15 +71,25 @@ const Login = () => {
                   Forgot Password?
                 </Link>
               </div>
-              <input
-                type="password"
-                name="password"
-                className="form-input"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
+              <div className="password-field">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  className="form-input"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
             </div>
 
             <button type="submit" className="btn btn-dark btn-block" disabled={loading}>
