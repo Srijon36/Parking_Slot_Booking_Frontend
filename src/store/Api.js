@@ -13,7 +13,7 @@ api.interceptors.request.use((req) => {
   // ── Token ──────────────────────────────────────
   let token = null;
   try {
-    const stored = sessionStorage.getItem('quickmeds_token');
+    const stored = sessionStorage.getItem('parking_token');
     const parsed = stored ? JSON.parse(stored) : null;
     token = parsed?.token || null;
   } catch {
@@ -59,7 +59,7 @@ api.interceptors.response.use(
         skipAutoLogoutURLs.some(url => requestUrl.includes(url));
 
       if (!skipRedirect) {
-        sessionStorage.removeItem('quickmeds_token');
+        sessionStorage.removeItem('parking_token');
         window.location.href = '/login';
       }
     }

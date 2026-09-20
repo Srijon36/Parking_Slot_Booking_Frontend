@@ -90,7 +90,9 @@ const parkingSlice = createSlice({
       })
       .addCase(fetchAllParkings.fulfilled, (state, action) => {
         state.loading = false;
-        state.parkings = action.payload.parkings || action.payload.data || [];
+        state.parkings = Array.isArray(action.payload)
+          ? action.payload
+          : (action.payload?.parkings || action.payload?.data || []);
       })
       .addCase(fetchAllParkings.rejected, (state, action) => {
         state.loading = false;
@@ -104,7 +106,8 @@ const parkingSlice = createSlice({
       })
       .addCase(fetchParkingById.fulfilled, (state, action) => {
         state.loading = false;
-        state.selectedParking = action.payload.parking || action.payload.data;
+        state.selectedParking =
+          action.payload?.parking || action.payload?.data || action.payload || null;
       })
       .addCase(fetchParkingById.rejected, (state, action) => {
         state.loading = false;

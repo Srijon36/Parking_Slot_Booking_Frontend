@@ -1,6 +1,8 @@
-import React from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { fetchMyBookings } from "../Reducer/BookingSlice";
+import { toast } from "react-toastify";
 import {
   Navigation2,
   Car,
@@ -8,46 +10,69 @@ import {
   KeyRound,
   Clock3,
   ArrowRight,
+  Bookmark,
+  CalendarCheck,
+  HelpCircle,
+  Sparkles,
 } from "lucide-react";
 
-/**
- * Home Dashboard — web layout.
- * Assumes <Navbar /> is already rendered by your app shell (e.g. in
- * App.jsx / a layout route), so this component only renders the page body.
- *
- * Replace the `mock*` values with real state, e.g.:
- *   const user = useSelector((s) => s.auth.user);
- *   const stats = useSelector((s) => s.booking.stats);
- */
 export default function Dashboard() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const user = useSelector((s) => s?.auth?.user) || { name: "Sebastian", tier: "Gold Tier" };
+  const user = useSelector((s) => s?.auth?.user);
+  const { bookings, loading } = useSelector((s) => s?.booking || { bookings: [] });
 
-  const stats = { total: 14, active: 1, saved: 4 };
+  useEffect(() => {
+    dispatch(fetchMyBookings());
+  }, [dispatch]);
 
-  const activeSession = {
-    lot: "Downtown Central Garage",
-    vehicle: "Honda Civic (7ABC123)",
-    bay: "Bay 4B • Floor 2",
-    remaining: "1h 39m 02s",
-    progressPct: 68,
+  const userName = user?.fullName || user?.name || user?.email?.split("@")[0] || "Driver";
+  const userRole = user?.role ? user.role.toUpperCase() : "DRIVER";
+
+  const handleFindParking = () => {
+    if ("geolocation" in navigator) {
+      toast.info("Fetching your location...", { autoClose: 2000 });
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          toast.success("Location fetched successfully!");
+          navigate("/search", { state: { lat, lng } });
+        },
+        (error) => {
+          console.error("Error getting location: ", error);
+          if (error.code === error.PERMISSION_DENIED) {
+            toast.error("Location access denied. Please allow location access in your browser.");
+          } else {
+            toast.error("Failed to fetch location. Please try again.");
+          }
+          navigate("/search");
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      toast.error("Geolocation is not supported by your browser.");
+      navigate("/search");
+    }
   };
 
-  const recentBookings = [
-    { id: "1", lot: "Riverside Plaza Parking", date: "May 24, 2025", price: "$7.00" },
-  ];
+  const totalBookings = bookings?.length || 0;
+  const activeBookings = bookings?.filter((b) => b.status === "active") || [];
+  const activeSession = activeBookings[0] || null;
+  const activeCount = activeBookings.length;
 
   return (
     <div className="dashboard-page">
       <div className="dashboard-topline">
         <div>
           <h1 className="dashboard-title">
-            Welcome back, {user.name} <span className="tier-badge">{user.tier}</span>
+            Welcome back, {userName} <span className="tier-badge">{userRole}</span>
           </h1>
-          <p className="dashboard-subtitle">Find quick parking or view active sessions</p>
+          <p className="dashboard-subtitle">Find quick parking or manage your active bookings</p>
         </div>
-        <button className="btn btn-teal" onClick={() => navigate("/search-parking")}>
+        <button className="btn btn-teal" onClick={handleFindParking}>
           <Navigation2 size={16} /> Find Parking
         </button>
       </div>
@@ -55,106 +80,228 @@ export default function Dashboard() {
       <div className="dashboard-stats">
         <div className="stat-card">
           <p className="stat-card-label">Total Bookings</p>
-          <p className="stat-card-value">{stats.total}</p>
+          <p className="stat-card-value">{totalBookings}</p>
         </div>
         <div className="stat-card">
           <p className="stat-card-label">Active Sessions</p>
-          <p className="stat-card-value active">{stats.active}</p>
+          <p className={`stat-card-value ${activeCount > 0 ? "active" : ""}`}>
+            {activeCount}
+          </p>
         </div>
         <div className="stat-card">
           <p className="stat-card-label">Saved Lots</p>
-          <p className="stat-card-value">{stats.saved}</p>
+          <p className="stat-card-value">0</p>
         </div>
       </div>
 
-      <div className="active-session-card">
-        <div className="active-session-header">
-          <span className="slots-badge">● Active Now</span>
-          <span className="parking-card-address">{activeSession.bay}</span>
-        </div>
-
-        <div className="active-session-body">
-          <div className="active-session-thumb">
-            <Car size={22} />
+      {/* Active Session Card or Clean Empty State */}
+      {activeSession ? (
+        <div className="active-session-card">
+          <div className="active-session-header">
+            <span className="slots-badge">● Active Now</span>
+            <span className="parking-card-address">
+              {activeSession.slot?.slotNumber
+                ? `Slot ${activeSession.slot.slotNumber}`
+                : "Reserved Bay"}
+            </span>
           </div>
-          <div>
-            <p className="parking-card-name">{activeSession.lot}</p>
-            <p className="parking-card-address">{activeSession.vehicle}</p>
+
+          <div className="active-session-body">
+            <div className="active-session-thumb">
+              <Car size={22} />
+            </div>
+            <div>
+              <p className="parking-card-name">
+                {activeSession.parking?.parkingName || "Reserved Garage"}
+              </p>
+              <p className="parking-card-address">
+                {activeSession.vehicleName
+                  ? `${activeSession.vehicleName} ${activeSession.vehicleModel || ""} (${activeSession.plateNumber})`
+                  : "Vehicle details recorded"}
+              </p>
+            </div>
+            <div className="active-session-time">
+              <span className="parking-card-address">Duration</span>
+              <p className="active-session-remaining">
+                {activeSession.hours || 1} {activeSession.hours === 1 ? "Hour" : "Hours"}
+              </p>
+            </div>
           </div>
-          <div className="active-session-time">
-            <span className="parking-card-address">Remaining</span>
-            <p className="active-session-remaining">{activeSession.remaining}</p>
+
+          <div className="active-session-actions">
+            <button
+              className="btn btn-outline"
+              onClick={() => navigate(`/reservations/${activeSession._id}`)}
+            >
+              <KeyRound size={15} /> View Pass
+            </button>
+            <button className="btn btn-teal" onClick={() => navigate("/reservations")}>
+              All Bookings
+            </button>
           </div>
         </div>
-
-        <div className="session-progress-track">
-          <div className="session-progress-fill" style={{ width: `${activeSession.progressPct}%` }} />
+      ) : (
+        <div
+          className="active-session-card"
+          style={{
+            background: "var(--color-white)",
+            border: "1px solid var(--color-gray-200)",
+            padding: "24px 28px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 20,
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <div
+                className="active-session-thumb"
+                style={{
+                  background: "var(--color-teal-100)",
+                  color: "var(--color-teal-700)",
+                  width: 48,
+                  height: 48,
+                }}
+              >
+                <Car size={24} />
+              </div>
+              <div>
+                <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700 }}>
+                  No Active Parking Sessions
+                </h3>
+                <p style={{ margin: 0, fontSize: 13, color: "var(--color-gray-600)" }}>
+                  You haven't reserved any parking spots yet. Find a spot near your destination.
+                </p>
+              </div>
+            </div>
+            <button className="btn btn-teal" onClick={handleFindParking}>
+              <Navigation2 size={15} /> Find Parking
+            </button>
+          </div>
         </div>
+      )}
 
-        <div className="active-session-actions">
-          <button className="btn btn-outline">
-            <Clock3 size={15} /> Extend Time
-          </button>
-          <button className="btn btn-teal">
-            <KeyRound size={15} /> Access Key
-          </button>
-        </div>
-      </div>
-
+      {/* Quick Actions */}
       <div className="dashboard-section-header">
         <h2 className="dashboard-section-title">Quick Actions</h2>
       </div>
       <div className="quick-actions-grid">
-        <div className="quick-action-tile" onClick={() => navigate("/search-parking")}>
-          <div className="quick-action-icon"><Navigation2 size={18} /></div>
+        <div className="quick-action-tile" onClick={handleFindParking}>
+          <div className="quick-action-icon">
+            <Navigation2 size={18} />
+          </div>
           <div>
             <p className="quick-action-title">Find Parking</p>
-            <p className="quick-action-sub">Nearby spots &amp; EV</p>
+            <p className="quick-action-sub">Nearby spots &amp; live slots</p>
           </div>
         </div>
-        <div className="quick-action-tile" onClick={() => navigate("/vehicles")}>
-          <div className="quick-action-icon"><Car size={18} /></div>
+
+        <div className="quick-action-tile" onClick={() => navigate("/reservations")}>
+          <div className="quick-action-icon">
+            <CalendarCheck size={18} />
+          </div>
           <div>
-            <p className="quick-action-title">My Vehicles</p>
-            <p className="quick-action-sub">Civic • 7ABC123</p>
+            <p className="quick-action-title">My Bookings</p>
+            <p className="quick-action-sub">
+              {totalBookings === 0 ? "No active passes" : `${totalBookings} reservation(s)`}
+            </p>
           </div>
         </div>
-        <div className="quick-action-tile">
-          <div className="quick-action-icon"><BadgePercent size={18} /></div>
+
+        <div className="quick-action-tile" onClick={() => navigate("/search")}>
+          <div className="quick-action-icon">
+            <Bookmark size={18} />
+          </div>
           <div>
-            <p className="quick-action-title">Monthly Pass</p>
-            <p className="quick-action-sub">Save up to 35%</p>
+            <p className="quick-action-title">Explore Lots</p>
+            <p className="quick-action-sub">Compare rates &amp; bays</p>
           </div>
         </div>
-        <div className="quick-action-tile">
-          <div className="quick-action-icon"><KeyRound size={18} /></div>
+
+        <div
+          className="quick-action-tile"
+          onClick={() => toast.info("24/7 ParkEase Support is active. Email: support@parkease.com")}
+        >
+          <div className="quick-action-icon">
+            <HelpCircle size={18} />
+          </div>
           <div>
-            <p className="quick-action-title">Valet Drop-off</p>
-            <p className="quick-action-sub">Curbside handoff</p>
+            <p className="quick-action-title">Help &amp; Support</p>
+            <p className="quick-action-sub">24/7 Driver assistance</p>
           </div>
         </div>
       </div>
 
+      {/* Recent Bookings */}
       <div className="dashboard-section-header">
         <h2 className="dashboard-section-title">Recent Bookings</h2>
-        <span className="dashboard-view-all" onClick={() => navigate("/reservations")} style={{ cursor: "pointer" }}>
-          View All <ArrowRight size={13} style={{ verticalAlign: "-2px" }} />
-        </span>
+        {totalBookings > 0 && (
+          <span
+            className="dashboard-view-all"
+            onClick={() => navigate("/reservations")}
+            style={{ cursor: "pointer" }}
+          >
+            View All <ArrowRight size={13} style={{ verticalAlign: "-2px" }} />
+          </span>
+        )}
       </div>
-      <div className="dashboard-bookings-grid">
-        {recentBookings.map((b) => (
-          <div className="booking-row" key={b.id}>
-            <div className="active-session-thumb" style={{ width: 40, height: 40 }}>
-              <Car size={16} />
+
+      {totalBookings > 0 ? (
+        <div className="dashboard-bookings-grid">
+          {bookings.slice(0, 4).map((b) => (
+            <div
+              className="booking-row"
+              key={b._id}
+              onClick={() => navigate(`/reservations/${b._id}`)}
+              style={{ cursor: "pointer" }}
+            >
+              <div className="active-session-thumb" style={{ width: 40, height: 40 }}>
+                <Car size={16} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <p className="parking-card-name">
+                  {b.parking?.parkingName || "Parking Location"}
+                </p>
+                <p className="parking-card-address">
+                  {new Date(b.createdAt || b.startTime).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                  {b.vehicleName ? ` · ${b.vehicleName} (${b.plateNumber || ""})` : ""}
+                </p>
+              </div>
+              <p className="booking-row-price" style={{ color: "var(--color-teal-600)", fontWeight: 700 }}>
+                ${b.totalPrice ? Number(b.totalPrice).toFixed(2) : "0.00"}
+              </p>
             </div>
-            <div style={{ flex: 1 }}>
-              <p className="parking-card-name">{b.lot}</p>
-              <p className="parking-card-address">{b.date}</p>
-            </div>
-            <p className="booking-row-price">{b.price}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div
+          style={{
+            padding: "36px 24px",
+            textAlign: "center",
+            background: "var(--color-white)",
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--color-gray-200)",
+            color: "var(--color-gray-600)",
+          }}
+        >
+          <Car size={28} color="var(--color-gray-400)" style={{ margin: "0 auto 8px" }} />
+          <p style={{ margin: "0 0 6px", fontSize: 15, fontWeight: 600, color: "var(--color-charcoal)" }}>
+            No recent bookings yet
+          </p>
+          <p style={{ margin: 0, fontSize: 13 }}>
+            When you reserve a parking spot, your active passes and booking receipts will appear here.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

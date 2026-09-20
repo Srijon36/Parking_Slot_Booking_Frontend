@@ -5,7 +5,8 @@ import { fetchParkingById, clearSelectedParking } from "../Reducer/ParkingSlice"
 import Loader from "../components/Loader";
 
 const Booking = () => {
-  const { id } = useParams();
+  const { id, parkingId } = useParams();
+  const effectiveParkingId = parkingId || id;
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -17,9 +18,11 @@ const Booking = () => {
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
-    dispatch(fetchParkingById(id));
+    if (effectiveParkingId) {
+      dispatch(fetchParkingById(effectiveParkingId));
+    }
     return () => dispatch(clearSelectedParking());
-  }, [dispatch, id]);
+  }, [dispatch, effectiveParkingId]);
 
   if (loading) {
     return <Loader fullScreen />;
@@ -53,7 +56,7 @@ const Booking = () => {
     try {
       // TODO: dispatch a booking thunk here, e.g.
       // await dispatch(createBooking({ parkingId: id, vehicleNumber, hours })).unwrap();
-      navigate(`/payment/${id}`, { state: { vehicleNumber, hours, totalPrice } });
+      navigate(`/payment/${effectiveParkingId}`, { state: { vehicleNumber, hours, totalPrice } });
     } catch (err) {
       setFormError(err?.message || "Booking failed. Please try again.");
     } finally {

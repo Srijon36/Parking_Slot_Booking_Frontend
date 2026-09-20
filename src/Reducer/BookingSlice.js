@@ -89,7 +89,9 @@ const bookingSlice = createSlice({
       })
       .addCase(fetchMyBookings.fulfilled, (state, action) => {
         state.loading = false;
-        state.bookings = action.payload.bookings || action.payload.data || [];
+        state.bookings = Array.isArray(action.payload)
+          ? action.payload
+          : (action.payload?.bookings || action.payload?.data || []);
       })
       .addCase(fetchMyBookings.rejected, (state, action) => {
         state.loading = false;
@@ -132,10 +134,12 @@ const bookingSlice = createSlice({
       })
       .addCase(cancelBooking.fulfilled, (state, action) => {
         state.loading = false;
-        const updated = action.payload.booking || action.payload.data;
-        if (updated) {
-          const idx = state.bookings.findIndex((b) => b._id === updated._id);
-          if (idx !== -1) state.bookings[idx] = updated;
+        const cancelledId = action.meta.arg;
+        state.bookings = state.bookings.map((b) =>
+          b._id === cancelledId ? { ...b, status: "cancelled" } : b
+        );
+        if (state.selectedBooking && state.selectedBooking._id === cancelledId) {
+          state.selectedBooking.status = "cancelled";
         }
       })
       .addCase(cancelBooking.rejected, (state, action) => {

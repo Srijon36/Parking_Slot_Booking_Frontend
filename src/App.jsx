@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Pages
 import Home from "./pages/Home";
@@ -40,22 +42,12 @@ const AppLayout = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        <Route
-          path="/search"
-          element={
-            <ProtectedRoute>
-              <SearchParking />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/parking/:id"
-          element={
-            <ProtectedRoute>
-              <ParkingDetails />
-            </ProtectedRoute>
-          }
-        />
+        {/* Search Parking: accessible directly from Navbar / Home / Dashboard */}
+        <Route path="/search" element={<SearchParking />} />
+        <Route path="/search-parking" element={<SearchParking />} />
+
+        {/* Parking Details: viewable before booking */}
+        <Route path="/parking/:id" element={<ParkingDetails />} />
 
         <Route
           path="/slots/:parkingId"
@@ -97,6 +89,7 @@ const AppLayout = () => {
             </ProtectedRoute>
           }
         />
+        <Route path="/bookings" element={<Navigate to="/reservations" replace />} />
         <Route
           path="/reservations/:id"
           element={
@@ -135,6 +128,7 @@ function App() {
   return (
     <BrowserRouter>
       <AppLayout />
+      <ToastContainer position="top-right" autoClose={3000} />
     </BrowserRouter>
   );
 }
